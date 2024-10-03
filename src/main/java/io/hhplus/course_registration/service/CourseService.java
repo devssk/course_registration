@@ -37,7 +37,7 @@ public class CourseService {
         Member member = memberRepository.findById(req.memberId()).orElseThrow(
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
-        CourseEnrollment courseEnrollment = courseEnrollmentRepository.findById(req.courseInfoId()).get();
+        CourseEnrollment courseEnrollment = courseEnrollmentRepository.findByCourseInfoCourseInfoId(courseInfo.getCourseInfoId());
         courseEnrollment.plusEnrollment();
 
         RegisterCourseHistory registerCourseHistory = new RegisterCourseHistory(member, courseInfo);

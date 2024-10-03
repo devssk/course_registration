@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: course_registration
+
+  jpa:
+    open-in-view: false
+
+    hibernate:
+      ddl-auto: create
+
+    show-sql: true
+
+    properties:
+      hibernate:
+        default_batch_fetch_size: 30
+        ## sql log
+        format_sql: true
+        use_sql_comments: true
+        highlight_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+logging:
+  level:
+    org.hibernate.orm.jdbc.bind: trace

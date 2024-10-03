@@ -102,7 +102,7 @@ public class CourseServiceTest {
 
             doReturn(Optional.of(courseInfo)).when(courseInfoRepository).findById(anyLong());
             doReturn(Optional.of(new Member())).when(memberRepository).findById(anyLong());
-            doReturn(Optional.of(courseEnrollment)).when(courseEnrollmentRepository).findById(anyLong());
+            doReturn(courseEnrollment).when(courseEnrollmentRepository).findByCourseInfoCourseInfoId(anyLong());
 
             // when
             CourseDto.RegisterCourseResponse result = courseService.registerCourse(req);

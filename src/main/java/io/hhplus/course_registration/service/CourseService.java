@@ -9,6 +9,7 @@ import io.hhplus.course_registration.entity.enums.CourseStatus;
 import io.hhplus.course_registration.repository.*;
 import io.hhplus.course_registration.util.Validation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,10 +41,6 @@ public class CourseService {
         Member member = memberRepository.findById(req.memberId()).orElseThrow(
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
-        Boolean existsRegisterCourseHistory = registerCourseHistoryRepository.existsByCourseInfoCourseInfoIdAndMemberMemberId(courseInfo.getCourseInfoId(), member.getMemberId());
-        if (existsRegisterCourseHistory) {
-            throw new IllegalArgumentException("동일한 강의는 한번만 신청이 가능합니다.");
-        }
         CourseEnrollment courseEnrollment = courseEnrollmentRepository.findByCourseInfoCourseInfoId(courseInfo.getCourseInfoId());
         if (courseEnrollment.getEnrollment() >= courseInfo.getCapacity()) {
             throw new IllegalArgumentException("강의 최대 수강 인원은 30명까지 입니다.");
@@ -54,7 +51,12 @@ public class CourseService {
         }
 
         RegisterCourseHistory registerCourseHistory = new RegisterCourseHistory(member, courseInfo);
-        registerCourseHistoryRepository.save(registerCourseHistory);
+        try {
+            registerCourseHistoryRepository.save(registerCourseHistory);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("동일한 강의는 한번만 신청이 가능합니다.");
+        }
+
 
         return new CourseDto.RegisterCourseResponse(
                 registerCourseHistory.getCourseInfo().getCourse().getCourseId(),

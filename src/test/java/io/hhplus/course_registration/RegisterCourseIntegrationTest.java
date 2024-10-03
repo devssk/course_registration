@@ -5,11 +5,13 @@ import io.hhplus.course_registration.entity.*;
 import io.hhplus.course_registration.entity.enums.CourseStatus;
 import io.hhplus.course_registration.repository.*;
 import io.hhplus.course_registration.service.CourseService;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -195,8 +197,8 @@ public class RegisterCourseIntegrationTest {
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
-        executorService.execute(() -> {
-            for (int i = 0; i < threadCount; i++) {
+        for (int i = 0; i < threadCount; i++) {
+            executorService.execute(() -> {
                 CourseDto.RegisterCourseRequest req = new CourseDto.RegisterCourseRequest(courseInfoId, memberId);
                 try {
                     courseService.registerCourse(req);
@@ -205,8 +207,8 @@ public class RegisterCourseIntegrationTest {
                 } finally {
                     countDownLatch.countDown();
                 }
-            }
-        });
+            });
+        }
         countDownLatch.await();
 
         List<RegisterCourseHistory> resultList = registerCourseHistoryRepository.findAllByCourseInfoCourseInfoId(courseInfoId);

@@ -184,4 +184,37 @@ public class RegisterCourseIntegrationTest {
         assertEquals(courseInfo.getCourseStatus(), CourseStatus.FULL);
     }
 
+    @Test
+    @DisplayName("한 사용자가 한 강의에 여러번 동시에 신청할 때")
+    void sameRegisterCourseTest() throws InterruptedException {
+        // given
+        Long courseInfoId = 2L;
+        Long memberId = 2L;
+
+        // when
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+        executorService.execute(() -> {
+            for (int i = 0; i < threadCount; i++) {
+                CourseDto.RegisterCourseRequest req = new CourseDto.RegisterCourseRequest(courseInfoId, memberId);
+                try {
+                    courseService.registerCourse(req);
+                } catch (IllegalArgumentException e) {
+                    assertEquals("동일한 강의는 한번만 신청이 가능합니다.", e.getMessage());
+                } finally {
+                    countDownLatch.countDown();
+                }
+            }
+        });
+        countDownLatch.await();
+
+        List<RegisterCourseHistory> resultList = registerCourseHistoryRepository.findAllByCourseInfoCourseInfoId(courseInfoId);
+        CourseEnrollment result = courseEnrollmentRepository.findById(2L).get();
+
+        // then
+        assertEquals(resultList.size(), 1);
+        assertEquals(result.getEnrollment(), 1);
+    }
+
 }

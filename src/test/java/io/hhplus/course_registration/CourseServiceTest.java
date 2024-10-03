@@ -109,8 +109,39 @@ public class CourseServiceTest {
         }
 
         @Test
+        @DisplayName("동일한 유저가 동일한 강의를 여러번 신청할 경우")
+        void sameRegisterCourseTest() throws Exception {
+            // given
+            Long courseInfoId = 1L;
+            Long memberId = 1L;
+            CourseDto.RegisterCourseRequest req = new CourseDto.RegisterCourseRequest(courseInfoId, memberId);
+
+            Course course = new Course(1L, "고기굽기의 모든것");
+            Member member = new Member("본업도 잘하는 남자");
+
+            Field createdAtField = Member.class.getDeclaredField("memberId");
+            createdAtField.setAccessible(true);
+            createdAtField.set(member, memberId);
+
+            Teacher teacher = new Teacher(1L, "안성재");
+            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.EMPTY);
+
+            Boolean exists = true;
+
+            doReturn(Optional.of(courseInfo)).when(courseInfoRepository).findById(anyLong());
+            doReturn(Optional.of(member)).when(memberRepository).findById(anyLong());
+            doReturn(exists).when(registerCourseHistoryRepository).existsByCourseInfoCourseInfoIdAndMemberMemberId(courseInfoId, memberId);
+
+            // when
+            Throwable throwable = assertThrows(IllegalArgumentException.class, () -> courseService.registerCourse(req));
+
+            // then
+            assertEquals("동일한 강의는 한번만 신청이 가능합니다.", throwable.getMessage());
+        }
+
+        @Test
         @DisplayName("최대 수강 인원 체크는 넘어갔으나 도중 최대 수강 인원에 도달했을 경우")
-        void enrollmentIs30Test() {
+        void enrollmentIs30Test() throws Exception {
             // given
             Long courseInfoId = 1L;
             Long memberId = 1L;
@@ -118,12 +149,21 @@ public class CourseServiceTest {
 
             Course course = new Course(1L, "고기굽기의 모든것");
             Teacher teacher = new Teacher(1L, "안성재");
+            Member member = new Member("본업도 잘하는 남자");
+
+            Field createdAtField = Member.class.getDeclaredField("memberId");
+            createdAtField.setAccessible(true);
+            createdAtField.set(member, memberId);
+
             CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.EMPTY);
             CourseEnrollment courseEnrollment = new CourseEnrollment(1L, courseInfo, 30);
 
+            Boolean exists = false;
+
             doReturn(Optional.of(courseInfo)).when(courseInfoRepository).findById(anyLong());
-            doReturn(Optional.of(new Member())).when(memberRepository).findById(anyLong());
+            doReturn(Optional.of(member)).when(memberRepository).findById(anyLong());
             doReturn(courseEnrollment).when(courseEnrollmentRepository).findByCourseInfoCourseInfoId(anyLong());
+            doReturn(exists).when(registerCourseHistoryRepository).existsByCourseInfoCourseInfoIdAndMemberMemberId(anyLong(), anyLong());
 
             // when
             Throwable throwable = assertThrows(IllegalArgumentException.class, () -> courseService.registerCourse(req));

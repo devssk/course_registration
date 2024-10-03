@@ -159,9 +159,10 @@ public class RegisterCourseIntegrationTest {
         int threadCount = 40;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch countDownLatch = new CountDownLatch(threadCount);
-        executorService.execute(() -> {
-            for (int i = 1; i < 41; i++) {
-                Long memberId = (long) i;
+        for (int i = 1; i < 41; i++) {
+            final int index = i;
+            executorService.execute(() -> {
+                Long memberId = (long) index;
                 CourseDto.RegisterCourseRequest req = new CourseDto.RegisterCourseRequest(courseInfoId, memberId);
                 try {
                     courseService.registerCourse(req);
@@ -170,8 +171,8 @@ public class RegisterCourseIntegrationTest {
                 } finally {
                     countDownLatch.countDown();
                 }
-            }
-        });
+            });
+        }
         countDownLatch.await();
 
         List<RegisterCourseHistory> resultList = registerCourseHistoryRepository.findAllByCourseInfoCourseInfoId(courseInfoId);

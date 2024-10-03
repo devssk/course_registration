@@ -41,11 +41,11 @@ public class CourseService {
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
         CourseEnrollment courseEnrollment = courseEnrollmentRepository.findByCourseInfoCourseInfoId(courseInfo.getCourseInfoId());
-        if (courseEnrollment.getEnrollment() >= 30) {
+        if (courseEnrollment.getEnrollment() >= courseInfo.getCapacity()) {
             throw new IllegalArgumentException("강의 최대 수강 인원은 30명까지 입니다.");
         }
         courseEnrollment.plusEnrollment();
-        if (courseEnrollment.getEnrollment() == 30) {
+        if (courseEnrollment.getEnrollment() == courseInfo.getCapacity()) {
             courseInfo.updateCourseStatusFull();
         }
 

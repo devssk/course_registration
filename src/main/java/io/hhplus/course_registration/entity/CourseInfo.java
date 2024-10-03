@@ -44,4 +44,8 @@ public class CourseInfo extends EntityTimestamp {
     @Column(nullable = false, columnDefinition = "VARCHAR(10)")
     private CourseStatus courseStatus;
 
+    public void updateCourseStatusFull() {
+        this.courseStatus = CourseStatus.FULL;
+    }
+
 }

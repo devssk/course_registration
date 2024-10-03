@@ -34,11 +34,20 @@ public class CourseService {
         CourseInfo courseInfo = courseInfoRepository.findById(req.courseInfoId()).orElseThrow(
                 () -> new IllegalArgumentException("해당 강의를 찾을 수 없습니다.")
         );
+        if (courseInfo.getCourseStatus() == CourseStatus.FULL) {
+            throw new IllegalArgumentException("해당 강의는 최대 수강인원에 도달했습니다.");
+        }
         Member member = memberRepository.findById(req.memberId()).orElseThrow(
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
         CourseEnrollment courseEnrollment = courseEnrollmentRepository.findByCourseInfoCourseInfoId(courseInfo.getCourseInfoId());
+        if (courseEnrollment.getEnrollment() >= courseInfo.getCapacity()) {
+            throw new IllegalArgumentException("강의 최대 수강 인원은 30명까지 입니다.");
+        }
         courseEnrollment.plusEnrollment();
+        if (courseEnrollment.getEnrollment() == courseInfo.getCapacity()) {
+            courseInfo.updateCourseStatusFull();
+        }
 
         RegisterCourseHistory registerCourseHistory = new RegisterCourseHistory(member, courseInfo);
         registerCourseHistoryRepository.save(registerCourseHistory);
@@ -54,7 +63,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public List<CourseDto.OpenCourseResponse> getOpenCourseList() {
-        List<CourseInfo> findOpenCourseList = courseInfoRepository.findByCourseStatus(CourseStatus.OPEN);
+        List<CourseInfo> findOpenCourseList = courseInfoRepository.findByCourseStatus(CourseStatus.EMPTY);
         List<Long> list = findOpenCourseList.stream().map(CourseInfo::getCourseInfoId).toList();
         List<CourseEnrollment> findCourseEnrollmentList = courseEnrollmentRepository.findAllByCourseInfoCourseInfoIdIn(list);
         HashMap<Long, Integer> courseEnrollmentHashMap = new HashMap<>();

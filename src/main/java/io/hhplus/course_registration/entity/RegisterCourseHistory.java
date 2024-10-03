@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"member_id", "course_info_id"})})
 public class RegisterCourseHistory extends EntityTimestamp {
 
     public RegisterCourseHistory(Member member, CourseInfo courseInfo) {

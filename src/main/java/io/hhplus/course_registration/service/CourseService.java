@@ -9,6 +9,7 @@ import io.hhplus.course_registration.entity.enums.CourseStatus;
 import io.hhplus.course_registration.repository.*;
 import io.hhplus.course_registration.util.Validation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +51,12 @@ public class CourseService {
         }
 
         RegisterCourseHistory registerCourseHistory = new RegisterCourseHistory(member, courseInfo);
-        registerCourseHistoryRepository.save(registerCourseHistory);
+        try {
+            registerCourseHistoryRepository.save(registerCourseHistory);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("동일한 강의는 한번만 신청이 가능합니다.");
+        }
+
 
         return new CourseDto.RegisterCourseResponse(
                 registerCourseHistory.getCourseInfo().getCourse().getCourseId(),

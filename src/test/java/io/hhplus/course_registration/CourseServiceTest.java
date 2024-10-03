@@ -88,6 +88,51 @@ public class CourseServiceTest {
         }
 
         @Test
+        @DisplayName("해당 강의가 최대 수강 인원 일 경우")
+        void courseIsFullTest() {
+            // given
+            Long courseInfoId = 1L;
+            Long memberId = 1L;
+            CourseDto.RegisterCourseRequest req = new CourseDto.RegisterCourseRequest(courseInfoId, memberId);
+
+            Course course = new Course(1L, "고기굽기의 모든것");
+            Teacher teacher = new Teacher(1L, "안성재");
+            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.FULL);
+
+            doReturn(Optional.of(courseInfo)).when(courseInfoRepository).findById(anyLong());
+
+            // when
+            Throwable throwable = assertThrows(IllegalArgumentException.class, () -> courseService.registerCourse(req));
+
+            // then
+            assertEquals("해당 강의는 최대 수강인원에 도달했습니다.", throwable.getMessage());
+        }
+
+        @Test
+        @DisplayName("최대 수강 인원 체크는 넘어갔으나 도중 최대 수강 인원에 도달했을 경우")
+        void enrollmentIs30Test() {
+            // given
+            Long courseInfoId = 1L;
+            Long memberId = 1L;
+            CourseDto.RegisterCourseRequest req = new CourseDto.RegisterCourseRequest(courseInfoId, memberId);
+
+            Course course = new Course(1L, "고기굽기의 모든것");
+            Teacher teacher = new Teacher(1L, "안성재");
+            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.EMPTY);
+            CourseEnrollment courseEnrollment = new CourseEnrollment(1L, courseInfo, 30);
+
+            doReturn(Optional.of(courseInfo)).when(courseInfoRepository).findById(anyLong());
+            doReturn(Optional.of(new Member())).when(memberRepository).findById(anyLong());
+            doReturn(courseEnrollment).when(courseEnrollmentRepository).findByCourseInfoCourseInfoId(anyLong());
+
+            // when
+            Throwable throwable = assertThrows(IllegalArgumentException.class, () -> courseService.registerCourse(req));
+
+            // then
+            assertEquals("강의 최대 수강 인원은 30명까지 입니다.", throwable.getMessage());
+        }
+
+        @Test
         @DisplayName("정상 수강 등록")
         void registerCourseTest() {
             // given
@@ -97,7 +142,7 @@ public class CourseServiceTest {
 
             Course course = new Course(1L, "고기굽기의 모든것");
             Teacher teacher = new Teacher(1L, "안성재");
-            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.OPEN);
+            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.EMPTY);
             CourseEnrollment courseEnrollment = new CourseEnrollment(1L, courseInfo, 0);
 
             doReturn(Optional.of(courseInfo)).when(courseInfoRepository).findById(anyLong());
@@ -144,7 +189,7 @@ public class CourseServiceTest {
             // given
             Course course = new Course(1L, "장사의 모든것");
             Teacher teacher = new Teacher(1L, "백종원");
-            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.OPEN);
+            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.EMPTY);
             CourseEnrollment courseEnrollment = new CourseEnrollment(1L, courseInfo, 0);
 
             List<CourseInfo> courseInfoList = new ArrayList<>();
@@ -152,7 +197,7 @@ public class CourseServiceTest {
             List<CourseEnrollment> courseEnrollmentList = new ArrayList<>();
             courseEnrollmentList.add(courseEnrollment);
 
-            doReturn(courseInfoList).when(courseInfoRepository).findByCourseStatus(CourseStatus.OPEN);
+            doReturn(courseInfoList).when(courseInfoRepository).findByCourseStatus(CourseStatus.EMPTY);
             doReturn(courseEnrollmentList).when(courseEnrollmentRepository).findAllByCourseInfoCourseInfoIdIn(anyList());
 
             // when
@@ -186,7 +231,7 @@ public class CourseServiceTest {
             Member member = new Member(memberId, "불꽃남자");
             Course course = new Course(1L, "리조또의 모든것");
             Teacher teacher = new Teacher(1L, "나폴리 맛피아");
-            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.OPEN);
+            CourseInfo courseInfo = new CourseInfo(1L, course, teacher, 30, LocalDate.of(2024, 10, 10), CourseStatus.EMPTY);
             RegisterCourseHistory registerCourseHistory = new RegisterCourseHistory(1L, member, courseInfo);
 
             Field createdAtField = EntityTimestamp.class.getDeclaredField("createdAt");

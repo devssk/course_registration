@@ -8,4 +8,5 @@ import java.util.List;
 public interface RegisterCourseHistoryRepository extends JpaRepository<RegisterCourseHistory, Long> {
     List<RegisterCourseHistory> findAllByMemberMemberId(Long memberId);
     List<RegisterCourseHistory> findAllByCourseInfoCourseInfoId(Long courseInfoId);
+    Boolean existsByCourseInfoCourseInfoIdAndMemberMemberId(Long courseInfoId, Long memberId);
 }

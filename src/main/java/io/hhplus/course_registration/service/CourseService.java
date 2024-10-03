@@ -40,6 +40,10 @@ public class CourseService {
         Member member = memberRepository.findById(req.memberId()).orElseThrow(
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
+        Boolean existsRegisterCourseHistory = registerCourseHistoryRepository.existsByCourseInfoCourseInfoIdAndMemberMemberId(courseInfo.getCourseInfoId(), member.getMemberId());
+        if (existsRegisterCourseHistory) {
+            throw new IllegalArgumentException("동일한 강의는 한번만 신청이 가능합니다.");
+        }
         CourseEnrollment courseEnrollment = courseEnrollmentRepository.findByCourseInfoCourseInfoId(courseInfo.getCourseInfoId());
         if (courseEnrollment.getEnrollment() >= courseInfo.getCapacity()) {
             throw new IllegalArgumentException("강의 최대 수강 인원은 30명까지 입니다.");
